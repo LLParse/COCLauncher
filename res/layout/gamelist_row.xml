@@ -1,37 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
+    android:layout_centerVertical="true"
+    android:background="@drawable/border"
     android:layout_height="?android:attr/listPreferredItemHeight" >
 
     <TextView
-        android:id="@+id/tvAge"
+	    android:background="@drawable/border"
+        android:id="@+id/tvId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/border"
+        android:layout_centerVertical="true"
         android:text="12"
+        android:padding="6dp"
+        android:textStyle="bold"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <TextView
+	    android:background="@drawable/border"
+        android:id="@+id/tvLevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:text="4"
+        android:padding="6dp"
+        android:textStyle="bold"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
         android:id="@+id/tvName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_toLeftOf="@+id/tvLevel"
-        android:layout_toRightOf="@+id/tvAge"
-        android:background="@drawable/border"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:padding="2dp"
+        android:textStyle="bold"
         android:text="Vlad the Impaler"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-
-    <TextView
-        android:id="@+id/tvLevel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/border"
-        android:text="4"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <TextView
@@ -39,11 +45,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:background="@drawable/border"
+        android:layout_centerHorizontal="true"
+        android:paddingBottom="0dp"
         android:text="P: 123456789012345678901234567890123456789012 L: 2575600 H: 12 (EN)"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:textSize="8sp" />
+        android:textSize="9dp" />
 
 </RelativeLayout>

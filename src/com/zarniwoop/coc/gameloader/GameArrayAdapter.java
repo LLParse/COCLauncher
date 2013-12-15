@@ -32,7 +32,7 @@ public class GameArrayAdapter extends ArrayAdapter<Credential> {
 	        TextView tvName = (TextView) rowView.findViewById(R.id.tvName);
 
 	        Credential cred = values.get(position);
-	        tvId.setText(String.valueOf(cred.getId()));
+	        tvId.setText(String.valueOf(position + 1));
 	        StringBuilder credb = new StringBuilder();
 	        credb.append("P: ")
 	        	 .append(cred.getPass())

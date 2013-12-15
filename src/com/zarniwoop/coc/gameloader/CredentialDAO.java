@@ -58,11 +58,15 @@ public class CredentialDAO {
 		return cred;
 	}
 	
-	public Credential get(String name) {
-		Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns, GameDatabase.COLUMN_NAME + " = ?", new String[]{name}, null, null, null);
-		cursor.moveToFirst();
-		Credential cred = cursorToCredential(cursor);
-		return cred;
+	private static final String QUERY_IDX = GameDatabase.COLUMN_PASS + " = ? AND " + GameDatabase.COLUMN_LOW + " = ? AND " + GameDatabase.COLUMN_HIGH + " = ?";
+	private static final String QUERY_IDX2 = QUERY_IDX + " AND " + GameDatabase.COLUMN_THLEVEL + " = ? AND " + GameDatabase.COLUMN_NAME + " = ?";
+	public Credential get(String pass, String low, String high) {
+		Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns, QUERY_IDX, new String[]{pass, low, high}, null, null, null);
+		if (cursor.moveToFirst()) {
+			return cursorToCredential(cursor); 
+		} else {
+			return null;
+		}
 	}
 	
 	public List<Credential> getAll() {
@@ -75,6 +79,11 @@ public class CredentialDAO {
 			cursor.moveToNext();
 		}
 		return creds;
+	}
+	
+	public boolean delete(Credential cred) {
+		int qty = database.delete(GameDatabase.TABLE_CREDS, QUERY_IDX2, new String[]{cred.getPass(), cred.getLow(), cred.getHigh(), cred.getThLevel(), cred.getName()});
+		return (qty == 1);
 	}
 
 	protected Credential cursorToCredential(Cursor cursor) {
