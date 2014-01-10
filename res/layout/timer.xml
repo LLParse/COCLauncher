@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <Button
+        android:id="@+id/plusHour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="@string/plus" />
+
+    <Button
+        android:id="@+id/plusDay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/plusHour"
+        android:text="@string/plus" />
+
+    <Button
+        android:id="@+id/plusMinute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/plusHour"
+        android:text="@string/plus" />
+
+    <TextView
+        android:id="@+id/hours"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/plusHour"
+        android:layout_alignRight="@+id/plusHour"
+        android:layout_below="@+id/plusHour"
+        android:ems="24"
+        android:gravity="center"
+        android:singleLine="true" />
+
+    <TextView
+        android:id="@+id/days"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/plusDay"
+        android:layout_alignRight="@+id/plusDay"
+        android:layout_below="@+id/plusDay"
+        android:ems="24"
+        android:gravity="center"
+        android:singleLine="true" />
+
+    <TextView
+        android:id="@+id/minutes"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/plusMinute"
+        android:layout_alignRight="@+id/plusMinute"
+        android:layout_alignTop="@+id/hours"
+        android:ems="24"
+        android:gravity="center"
+        android:singleLine="true" />
+    <Button
+        android:id="@+id/minusDay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/days"
+        android:layout_below="@+id/days"
+        android:text="@string/minus" />
+
+    <Button
+        android:id="@+id/minusHour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/hours"
+        android:layout_below="@+id/hours"
+        android:text="@string/minus" />
+
+    <Button
+        android:id="@+id/minusMinute"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/minutes"
+        android:layout_below="@+id/minutes"
+        android:text="@string/minus" />
+
+</RelativeLayout>

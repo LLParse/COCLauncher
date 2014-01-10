@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -39,6 +40,7 @@ public class MainActivity extends ListActivity {
 	private CredentialDAO credDAO;
 
 	private SecurePreferences storage;
+	
 	private static final String LOW = "Low_PROD2";
 	private static final String HIGH = "High_PROD2";
 	private static final String PASS = "Pass_PROD2";
@@ -60,6 +62,9 @@ public class MainActivity extends ListActivity {
 
 	ArrayList<Credential> credentials = new ArrayList<Credential>();
 	GameArrayAdapter adapter;
+	
+	// used by timer to determine when to update
+	private boolean appLaunched = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -143,6 +148,30 @@ public class MainActivity extends ListActivity {
 			}
 		};
 		run(command);
+	}
+	
+	@Override
+	public void onStop() {
+		super.onStop();
+	}
+	    
+	@Override
+	public void onRestart() {
+		super.onRestart();
+		// TODO check value of town hall
+		
+		// after-launch processing goes in this block
+		if (appLaunched && lastSelected != null) {
+			final Dialog dialog = new TimerDialog(MainActivity.this);
+	        dialog.setTitle(lastSelected.getName());
+	        dialog.show();
+			appLaunched = false;
+		}
+	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
 	}
 
 	@Override
@@ -245,6 +274,7 @@ public class MainActivity extends ListActivity {
 			@Override
 			public void commandCompleted(int id, int exitcode) {
 				launchGame();
+				// TODO schedule a save
 			}
 		};
 		run(command);
@@ -259,9 +289,11 @@ public class MainActivity extends ListActivity {
 	}
 
 	public void launchGame() {
-		Intent LaunchIntent = getPackageManager().getLaunchIntentForPackage(
+		Intent intent = getPackageManager().getLaunchIntentForPackage(
 				"com.supercell.clashofclans");
-		startActivity(LaunchIntent);
+		startActivity(intent);
+		appLaunched = true;
+		// TODO launch timer service
 	}
 
 	public void saveGame() {
@@ -313,18 +345,20 @@ public class MainActivity extends ListActivity {
 		adapter.notifyDataSetChanged();
 	}
 
+	
+	private Credential lastSelected;
+	
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
 
-		Credential cred = credentials.get(position);
-		// Credential cred = credDAO.get(name);
+		lastSelected = credentials.get(position);
 
-		storage.put(HIGH, cred.getHigh());
-		storage.put(LOW, cred.getLow());
-		storage.put(PASS, cred.getPass());
-		storage.put(LEVEL, cred.getThLevel());
-		storage.put(LOCALE, cred.getLocale());
+		storage.put(HIGH, lastSelected.getHigh());
+		storage.put(LOW, lastSelected.getLow());
+		storage.put(PASS, lastSelected.getPass());
+		storage.put(LEVEL, lastSelected.getThLevel());
+		storage.put(LOCALE, lastSelected.getLocale());
 
 		String[] commands = new String[] {
 				"cp -f " + thisPrefsDir + "/storage.xml " + thatPrefsDir,
