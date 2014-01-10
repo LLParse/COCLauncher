@@ -59,11 +59,25 @@ public class TimerDialog extends Dialog {
 
 	private void updateTimeViews(TextView days, TextView hours,
 			TextView minutes, long msDelay) {
-		days.setText(msDelay / DAY_MILLIS + " D,");
+		long numDays = msDelay / DAY_MILLIS;
 		msDelay %= DAY_MILLIS;
-		hours.setText(msDelay / HOUR_MILLIS + " H,");
+		if (numDays == 1)
+			days.setText(numDays + " day,");
+		else
+			days.setText(numDays + " days,");
+
+		long numHours = msDelay / HOUR_MILLIS;
 		msDelay %= HOUR_MILLIS;
-		minutes.setText(msDelay / MINUTE_MILLIS + " M");
+		if (numHours == 1)
+			hours.setText(numHours + " hour,");
+		else
+			hours.setText(numHours + " hours,");
+		
+		long numMinutes = msDelay / MINUTE_MILLIS;
+		if (numMinutes == 1)
+			minutes.setText(numMinutes + " minute");
+		else
+			minutes.setText(numMinutes + " minutes");
 	}
 
 	class DifferenceOnClickListener implements View.OnClickListener {
