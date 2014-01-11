@@ -18,7 +18,8 @@ public class CredentialDAO {
 	private String[] allColumns = { GameDatabase.COLUMN_ID,
 			GameDatabase.COLUMN_NAME, GameDatabase.COLUMN_LOW,
 			GameDatabase.COLUMN_HIGH, GameDatabase.COLUMN_PASS,
-			GameDatabase.COLUMN_THLEVEL, GameDatabase.COLUMN_LOCALE };
+			GameDatabase.COLUMN_THLEVEL, GameDatabase.COLUMN_LOCALE,
+			GameDatabase.COLUMN_NOTIFY_TIME };
 	private Context context;
 
 	public CredentialDAO(Context context) {
@@ -26,7 +27,7 @@ public class CredentialDAO {
 		db = new GameDatabase(context);
 		open();
 	}
-	
+
 	private void open() throws SQLException {
 		database = db.getWritableDatabase();
 	}
@@ -34,8 +35,9 @@ public class CredentialDAO {
 	public void close() {
 		db.close();
 	}
-	
-	public Credential create(String name, String low, String high, String pass, String thLevel, String locale) {
+
+	public Credential create(String name, String low, String high, String pass,
+			String thLevel, String locale, long notifyTime) {
 		ContentValues values = new ContentValues();
 		values.put(GameDatabase.COLUMN_NAME, name);
 		values.put(GameDatabase.COLUMN_LOW, low);
@@ -43,11 +45,15 @@ public class CredentialDAO {
 		values.put(GameDatabase.COLUMN_PASS, pass);
 		values.put(GameDatabase.COLUMN_THLEVEL, thLevel == null ? "1" : thLevel);
 		values.put(GameDatabase.COLUMN_LOCALE, locale);
+		values.put(GameDatabase.COLUMN_NOTIFY_TIME, notifyTime);
 
 		Credential cred = null;
 		try {
-			long insertId = database.insert(GameDatabase.TABLE_CREDS, null, values);
-			Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns, GameDatabase.COLUMN_ID + " = " + insertId, null, null, null, null);
+			long insertId = database.insert(GameDatabase.TABLE_CREDS, null,
+					values);
+			Cursor cursor = database.query(GameDatabase.TABLE_CREDS,
+					allColumns, GameDatabase.COLUMN_ID + " = " + insertId,
+					null, null, null, null);
 			cursor.moveToFirst();
 			cred = cursorToCredential(cursor);
 			cursor.close();
@@ -57,21 +63,28 @@ public class CredentialDAO {
 		}
 		return cred;
 	}
-	
-	private static final String QUERY_IDX = GameDatabase.COLUMN_PASS + " = ? AND " + GameDatabase.COLUMN_LOW + " = ? AND " + GameDatabase.COLUMN_HIGH + " = ?";
-	private static final String QUERY_IDX2 = QUERY_IDX + " AND " + GameDatabase.COLUMN_THLEVEL + " = ? AND " + GameDatabase.COLUMN_NAME + " = ?";
+
+	private static final String QUERY_IDX = GameDatabase.COLUMN_PASS
+			+ " = ? AND " + GameDatabase.COLUMN_LOW + " = ? AND "
+			+ GameDatabase.COLUMN_HIGH + " = ?";
+	private static final String QUERY_IDX2 = QUERY_IDX + " AND "
+			+ GameDatabase.COLUMN_THLEVEL + " = ? AND "
+			+ GameDatabase.COLUMN_NAME + " = ?";
+
 	public Credential get(String pass, String low, String high) {
-		Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns, QUERY_IDX, new String[]{pass, low, high}, null, null, null);
+		Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns,
+				QUERY_IDX, new String[] { pass, low, high }, null, null, null);
 		if (cursor.moveToFirst()) {
-			return cursorToCredential(cursor); 
+			return cursorToCredential(cursor);
 		} else {
 			return null;
 		}
 	}
-	
+
 	public List<Credential> getAll() {
 		List<Credential> creds = new ArrayList<Credential>();
-		Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns, null, null, null, null, null);
+		Cursor cursor = database.query(GameDatabase.TABLE_CREDS, allColumns,
+				null, null, null, null, GameDatabase.COLUMN_NOTIFY_TIME);
 		cursor.moveToFirst();
 		while (!cursor.isAfterLast()) {
 			Credential cred = cursorToCredential(cursor);
@@ -80,9 +93,22 @@ public class CredentialDAO {
 		}
 		return creds;
 	}
-	
+
+	public boolean updateTime(Credential cred, long notifyTime) {
+		ContentValues values = new ContentValues();
+		values.put(GameDatabase.COLUMN_NOTIFY_TIME, notifyTime);
+
+		int rowsUpdated = database.update(GameDatabase.TABLE_CREDS, values,
+				QUERY_IDX2,
+				new String[] { cred.getPass(), cred.getLow(), cred.getHigh(),
+						cred.getThLevel(), cred.getName() });
+		return (rowsUpdated == 1);
+	}
+
 	public boolean delete(Credential cred) {
-		int qty = database.delete(GameDatabase.TABLE_CREDS, QUERY_IDX2, new String[]{cred.getPass(), cred.getLow(), cred.getHigh(), cred.getThLevel(), cred.getName()});
+		int qty = database.delete(GameDatabase.TABLE_CREDS, QUERY_IDX2,
+				new String[] { cred.getPass(), cred.getLow(), cred.getHigh(),
+						cred.getThLevel(), cred.getName() });
 		return (qty == 1);
 	}
 
@@ -95,7 +121,8 @@ public class CredentialDAO {
 		cred.setPass(cursor.getString(4));
 		cred.setThLevel(cursor.getString(5));
 		cred.setLocale(cursor.getString(6));
+		cred.setNotifyTime(cursor.getLong(7));
 		return cred;
 	}
-	
+
 }

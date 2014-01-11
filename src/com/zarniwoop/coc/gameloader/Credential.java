@@ -9,6 +9,7 @@ public class Credential {
 	private String pass;
 	private String thLevel;
 	private String locale;
+	private Long notifyTime;
 	
 	public long getId() {
 		return id;
@@ -51,6 +52,12 @@ public class Credential {
 	}
 	public void setLocale(String locale) {
 		this.locale = locale;
+	}
+	public Long getNotifyTime() {
+		return notifyTime;
+	}
+	public void setNotifyTime(Long notifyTime) {
+		this.notifyTime = notifyTime;
 	}
 
 }

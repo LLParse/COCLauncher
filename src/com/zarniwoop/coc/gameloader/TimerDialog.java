@@ -8,17 +8,17 @@ import android.content.DialogInterface;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class TimerDialog extends Dialog {
 
-	private static final long DAY_MILLIS = TimeUnit.DAYS.toMillis(1L);
-	private static final long HOUR_MILLIS = TimeUnit.HOURS.toMillis(1L);
-	private static final long MINUTE_MILLIS = TimeUnit.MINUTES.toMillis(1L);
+	public static final long DAY_MILLIS = TimeUnit.DAYS.toMillis(1L);
+	public static final long HOUR_MILLIS = TimeUnit.HOURS.toMillis(1L);
+	public static final long MINUTE_MILLIS = TimeUnit.MINUTES.toMillis(1L);
+	public static final long SECOND_MILLIS = TimeUnit.SECONDS.toMillis(1L);
 
 	private long msDelay = 0;
 
-	public TimerDialog(final Context context) {
+	public TimerDialog(final Context context, final Credential cred, final GameArrayAdapter adapter) {
 		super(context);
 
 		setContentView(R.layout.timer);
@@ -27,8 +27,10 @@ public class TimerDialog extends Dialog {
 			@Override
 			public void onDismiss(DialogInterface di) {
 				long notifyTime = System.currentTimeMillis() + msDelay;
-				Toast.makeText(context, "Notify date: " + notifyTime,
-						Toast.LENGTH_SHORT).show();
+				cred.setNotifyTime(notifyTime);
+
+				CredentialDAO dao = new CredentialDAO(context);
+				dao.updateTime(cred, notifyTime);
 			}
 		});
 
@@ -112,5 +114,4 @@ public class TimerDialog extends Dialog {
 			updateTimeViews(days, hours, minutes, msDelay);
 		}
 	}
-
 }

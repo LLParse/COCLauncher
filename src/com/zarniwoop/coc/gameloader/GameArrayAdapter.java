@@ -14,36 +14,46 @@ public class GameArrayAdapter extends ArrayAdapter<Credential> {
 	private static final int resource = R.layout.gamelist_row;
 	private final Context context;
 	private final List<Credential> values;
+	private final NotificationTimer timer;
 
 	public GameArrayAdapter(Context context, List<Credential> values) {
 		super(context, resource, values);
 		this.context = context;
 		this.values = values;
+		timer = new NotificationTimer(1000L);
+		timer.start();
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
-	    LayoutInflater inflater = (LayoutInflater) context
-	            .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-	        View rowView = inflater.inflate(resource, parent, false);
-	        TextView tvId = (TextView) rowView.findViewById(R.id.tvId);
-	        TextView tvCredential = (TextView) rowView.findViewById(R.id.tvCredential);
-	        TextView tvLevel = (TextView) rowView.findViewById(R.id.tvLevel);
-	        TextView tvName = (TextView) rowView.findViewById(R.id.tvName);
+		LayoutInflater inflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View rowView = inflater.inflate(resource, parent, false);
+		TextView tvId = (TextView) rowView.findViewById(R.id.tvTime);
+		TextView tvCredential = (TextView) rowView
+				.findViewById(R.id.tvCredential);
+		TextView tvName = (TextView) rowView.findViewById(R.id.tvName);
 
-	        Credential cred = values.get(position);
-	        tvId.setText(String.valueOf(position + 1));
-	        StringBuilder credb = new StringBuilder();
-	        credb.append("P: ")
-	        	 .append(cred.getPass())
-	        	 .append(" | L: ")
-	        	 .append(cred.getLow())
-	        	 .append(" | H: ")
-	        	 .append(cred.getHigh());
-	        tvCredential.setText(credb.toString());
-	        tvLevel.setText("TH" + cred.getThLevel());
-	        tvName.setText(cred.getName());
-	        
-	        return rowView;
+		Credential cred = values.get(position);
+		StringBuilder credb = new StringBuilder();
+		credb.append("P: ").append(cred.getPass()).append(" | L: ")
+				.append(cred.getLow()).append(" | H: ").append(cred.getHigh());
+		tvCredential.setText(credb.toString());
+		tvName.setText(cred.getThLevel() + ": " + cred.getName());
+
+		if (cred.getNotifyTime() != null) {
+			timer.addDuration(cred.getNotifyTime(), tvId);
+		} else {
+			tvId.setText("READY");
+		}
+		return rowView;
+	}
+	
+	@Override
+	public void notifyDataSetChanged() {
+		super.notifyDataSetChanged();
+			for (Credential value : values) {
+			//timer.updateDuration(value.getId(), value.getNotifyTime());
+		}
 	}
 }

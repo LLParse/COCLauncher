@@ -40,7 +40,7 @@ public class MainActivity extends ListActivity {
 	private CredentialDAO credDAO;
 
 	private SecurePreferences storage;
-	
+
 	private static final String LOW = "Low_PROD2";
 	private static final String HIGH = "High_PROD2";
 	private static final String PASS = "Pass_PROD2";
@@ -61,8 +61,9 @@ public class MainActivity extends ListActivity {
 	private ApplicationInfo thatAppInfo;
 
 	ArrayList<Credential> credentials = new ArrayList<Credential>();
+	private Credential lastSelected;
 	GameArrayAdapter adapter;
-	
+
 	// used by timer to determine when to update
 	private boolean appLaunched = false;
 
@@ -90,19 +91,6 @@ public class MainActivity extends ListActivity {
 				saveGame();
 			}
 		});
-
-		/*games.setOnItemLongClickListener(new OnItemLongClickListener() {
-
-			public boolean onItemLongClick(AdapterView<?> arg0, View arg1,
-					int pos, long id) {
-
-				// TODO Auto-generated method stub
-
-				Log.v("long clicked", "pos: " + pos);
-
-				return true;
-			}
-		});*/
 
 		adapter = new GameArrayAdapter(this, credentials);
 		setListAdapter(adapter);
@@ -149,26 +137,27 @@ public class MainActivity extends ListActivity {
 		};
 		run(command);
 	}
-	
+
 	@Override
 	public void onStop() {
 		super.onStop();
 	}
-	    
+
 	@Override
 	public void onRestart() {
 		super.onRestart();
 		// TODO check value of town hall
-		
+
 		// after-launch processing goes in this block
 		if (appLaunched && lastSelected != null) {
-			final Dialog dialog = new TimerDialog(MainActivity.this);
-	        dialog.setTitle(lastSelected.getName());
-	        dialog.show();
+			final Dialog dialog = new TimerDialog(MainActivity.this,
+					lastSelected, adapter);
+			dialog.setTitle("Timer: " + lastSelected.getName());
+			dialog.show();
 			appLaunched = false;
 		}
 	}
-	
+
 	@Override
 	public void onStart() {
 		super.onStart();
@@ -178,19 +167,18 @@ public class MainActivity extends ListActivity {
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
 		super.onCreateContextMenu(menu, v, menuInfo);
-		// if (v.getId()==R.layout.menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.layout.menu, menu);
-		// }
 	}
 
 	@Override
 	public boolean onContextItemSelected(MenuItem item) {
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item.getMenuInfo();
+		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
+				.getMenuInfo();
 		Credential cred = credentials.get(info.position);
 		switch (item.getItemId()) {
 		case R.id.menu_rename:
-			
+
 			// add stuff here
 			return true;
 		case R.id.menu_delete:
@@ -282,10 +270,9 @@ public class MainActivity extends ListActivity {
 
 	public void loadGames() {
 		for (Credential cred : credDAO.getAll()) {
-			// out.append(cred.getName());
-			// out.append("\n");
-			addCredentialToList(cred);
+			credentials.add(cred);
 		}
+		adapter.notifyDataSetChanged();
 	}
 
 	public void launchGame() {
@@ -323,10 +310,12 @@ public class MainActivity extends ListActivity {
 				String pass = storage.getString(PASS);
 				String thLevel = storage.getString(LEVEL);
 				String locale = storage.getString(LOCALE);
+				long notifyTime = System.currentTimeMillis();
 
 				Credential cred = credDAO.create(name, low, high, pass,
-						thLevel, locale);
-				addCredentialToList(cred);
+						thLevel, locale, notifyTime);
+				credentials.add(cred);
+				adapter.notifyDataSetChanged();
 			}
 		});
 		builder.setNegativeButton("Cancel",
@@ -340,14 +329,6 @@ public class MainActivity extends ListActivity {
 		builder.show();
 	}
 
-	public void addCredentialToList(Credential cred) {
-		credentials.add(cred);
-		adapter.notifyDataSetChanged();
-	}
-
-	
-	private Credential lastSelected;
-	
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
