@@ -71,13 +71,14 @@ public class MainActivity extends ListActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		this.context = getApplicationContext();
+		this.context = this;
 		this.credDAO = new CredentialDAO(context);
 		this.out = (TextView) findViewById(R.id.tvOut);
 		this.newGame = (Button) findViewById(R.id.btnNewGame);
 		this.saveGame = (Button) findViewById(R.id.btnSaveGame);
 		this.games = this.getListView();
 		registerForContextMenu(games);
+		checkRoot(context);
 
 		newGame.setOnClickListener(new OnClickListener() {
 			@Override
@@ -97,8 +98,6 @@ public class MainActivity extends ListActivity {
 
 		loadGames();
 
-		checkRoot(context);
-
 		thisAppInfo = context.getApplicationInfo();
 
 		try {
@@ -115,27 +114,15 @@ public class MainActivity extends ListActivity {
 		thisPrefsDir = thisDataDir.concat(prefsDir);
 		thatDataDir = thatAppInfo.dataDir;
 		thatPrefsDir = thatDataDir.concat(prefsDir);
-
-		String[] commands = new String[] {
-				"mkdir " + thisPrefsDir,
-				"chown " + thisAppInfo.uid + " " + thisPrefsDir,
-				"chgrp " + thisAppInfo.uid + " " + thisPrefsDir,
-				"chmod 771 " + thisPrefsDir,
-				"cp " + thatPrefsDir + "/storage.xml " + thisPrefsDir,
-				"chown " + thisAppInfo.uid + " " + thisPrefsDir
-						+ "/storage.xml",
-				"chgrp " + thisAppInfo.uid + " " + thisPrefsDir
-						+ "/storage.xml",
-				"chmod 660 " + thisPrefsDir + "/storage.xml" };
-		CommandCapture command = new CommandCapture(0, commands) {
-			@Override
-			public void commandCompleted(int id, int exitcode) {
-				loadPrefs(context);
-				newGame.setEnabled(true);
-				saveGame.setEnabled(true);
-			}
-		};
-		run(command);
+		
+		openStorage();
+		newGame.setEnabled(true);
+		saveGame.setEnabled(true);
+	}
+	
+	@Override
+	public void onStart() {
+		super.onStart();
 	}
 
 	@Override
@@ -156,11 +143,6 @@ public class MainActivity extends ListActivity {
 			dialog.show();
 			appLaunched = false;
 		}
-	}
-
-	@Override
-	public void onStart() {
-		super.onStart();
 	}
 
 	@Override
@@ -218,7 +200,7 @@ public class MainActivity extends ListActivity {
 		return true;
 	}
 
-	public void loadPrefs(Context localContext) {
+	public void openStorage() {
 		String gameDataKey = getGameDataKey(this);
 		this.storage = new SecurePreferences(this, "storage", gameDataKey);
 	}
@@ -289,44 +271,65 @@ public class MainActivity extends ListActivity {
 		// out.append("*************** localPrefs\n");
 		// sniff(localPrefs);
 
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setTitle("Title");
-
-		// Set up the input
-		final EditText input = new EditText(this);
-		// Specify the type of input expected; this, for example, sets the input
-		// as a password, and will mask the text
-		input.setInputType(InputType.TYPE_CLASS_TEXT
-				| InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-		builder.setView(input);
-
-		// Set up the buttons
-		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		String[] commands = new String[] {
+				"mkdir " + thisPrefsDir,
+				"chown " + thisAppInfo.uid + " " + thisPrefsDir,
+				"chgrp " + thisAppInfo.uid + " " + thisPrefsDir,
+				"chmod 771 " + thisPrefsDir,
+				"cp " + thatPrefsDir + "/storage.xml " + thisPrefsDir,
+				"chown " + thisAppInfo.uid + " " + thisPrefsDir
+						+ "/storage.xml",
+				"chgrp " + thisAppInfo.uid + " " + thisPrefsDir
+						+ "/storage.xml",
+				"chmod 660 " + thisPrefsDir + "/storage.xml" };
+		CommandCapture command = new CommandCapture(0, commands) {
 			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				String name = input.getText().toString();
-				String low = storage.getString(LOW);
-				String high = storage.getString(HIGH);
-				String pass = storage.getString(PASS);
-				String thLevel = storage.getString(LEVEL);
-				String locale = storage.getString(LOCALE);
-				long notifyTime = System.currentTimeMillis();
+			public void commandCompleted(int id, int exitcode) {
+				openStorage();
+				
+				// TODO check if credentials are already saved
+				
+				AlertDialog.Builder builder = new AlertDialog.Builder(context);
+				builder.setTitle("Title");
 
-				Credential cred = credDAO.create(name, low, high, pass,
-						thLevel, locale, notifyTime);
-				credentials.add(cred);
-				adapter.notifyDataSetChanged();
-			}
-		});
-		builder.setNegativeButton("Cancel",
-				new DialogInterface.OnClickListener() {
+				// Set up the input
+				final EditText input = new EditText(context);
+				// Specify the type of input expected; this, for example, sets the input
+				// as a password, and will mask the text
+				input.setInputType(InputType.TYPE_CLASS_TEXT
+						| InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+				builder.setView(input);
+
+				// Set up the buttons
+				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
+						String name = input.getText().toString();
+						String low = storage.getString(LOW);
+						String high = storage.getString(HIGH);
+						String pass = storage.getString(PASS);
+						String thLevel = storage.getString(LEVEL);
+						String locale = storage.getString(LOCALE);
+						long notifyTime = System.currentTimeMillis();
+
+						Credential cred = credDAO.create(name, low, high, pass,
+								thLevel, locale, notifyTime);
+						credentials.add(cred);
+						adapter.notifyDataSetChanged();
 					}
 				});
+				builder.setNegativeButton("Cancel",
+						new DialogInterface.OnClickListener() {
+							@Override
+							public void onClick(DialogInterface dialog, int which) {
+								dialog.cancel();
+							}
+						});
 
-		builder.show();
+				builder.show();
+			}
+		};
+		run(command);
 	}
 
 	@Override

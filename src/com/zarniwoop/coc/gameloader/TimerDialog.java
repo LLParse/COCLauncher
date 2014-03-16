@@ -149,7 +149,7 @@ public class TimerDialog extends Dialog {
 
 		@Override
 		public void onClick(View view) {
-			scheduleTick(view);
+			tick(view);
 		}
 
 		@Override
@@ -160,7 +160,9 @@ public class TimerDialog extends Dialog {
 		}
 		
 		private void scheduleTick(View view) {
-			repeatHandler.postDelayed(new Ticker(view), delayMap.get(view));
+			Runnable r = new Ticker(view);
+			long delayMillis = delayMap.get(view);
+			repeatHandler.postDelayed(r, delayMillis);
 		}
 
 		class Ticker implements Runnable {

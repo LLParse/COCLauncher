@@ -29,11 +29,15 @@ public class NotificationTimer extends CountDownTimer {
 	
 	@Override
 	public void onTick(long millisUntilFinished) {
+		tick();
+	}
+	
+	public void tick() {
 		long currentTime = System.currentTimeMillis();
 		for (int i = 0; i < tvList.size(); i++) {
 			TextView tv = tvList.get(i);
 			Long futureTime = futureTimeList.get(i);
-			millisUntilFinished = futureTime - currentTime;
+			long millisUntilFinished = futureTime - currentTime;
 
 			if (millisUntilFinished <= 0L) {
 				tvList.remove(i);
@@ -46,6 +50,5 @@ public class NotificationTimer extends CountDownTimer {
 				tv.setText(TimerDialog.toString(millisUntilFinished));
 			}
 		}
-		
 	}
 }

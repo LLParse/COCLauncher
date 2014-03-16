@@ -43,17 +43,19 @@ public class GameArrayAdapter extends ArrayAdapter<Credential> {
 
 		if (cred.getNotifyTime() != null) {
 			timer.addDuration(cred.getNotifyTime(), tvId);
+			timer.tick();
 		} else {
 			tvId.setText("READY");
 		}
 		return rowView;
 	}
-	
+
 	@Override
 	public void notifyDataSetChanged() {
 		super.notifyDataSetChanged();
-			for (Credential value : values) {
-			//timer.updateDuration(value.getId(), value.getNotifyTime());
+		timer.tick();
+		for (Credential value : values) {
+			// timer.updateDuration(value.getId(), value.getNotifyTime());
 		}
 	}
 }
