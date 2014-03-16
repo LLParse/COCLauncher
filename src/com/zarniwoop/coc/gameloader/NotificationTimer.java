@@ -27,17 +27,6 @@ public class NotificationTimer extends CountDownTimer {
 		futureTimeList.add(futureTime);
 	}
 	
-	/*public boolean updateDuration(String pass, long futureTime) {
-		boolean success = true;
-
-		if (timeMap.containsKey(pass))
-			timeMap.put(pass, futureTime);
-		else
-			success = false;
-
-		return success;
-	}*/
-
 	@Override
 	public void onTick(long millisUntilFinished) {
 		long currentTime = System.currentTimeMillis();
@@ -53,30 +42,10 @@ public class NotificationTimer extends CountDownTimer {
 					i--;
 				tv.setText("READY");
 				continue;
+			} else {
+				tv.setText(TimerDialog.toString(millisUntilFinished));
 			}
-			
-			long numDays = millisUntilFinished / TimerDialog.DAY_MILLIS;
-			millisUntilFinished %= TimerDialog.DAY_MILLIS;
-			long numHours = millisUntilFinished / TimerDialog.HOUR_MILLIS;
-			millisUntilFinished %= TimerDialog.HOUR_MILLIS;
-			long numMinutes = millisUntilFinished / TimerDialog.MINUTE_MILLIS;
-			millisUntilFinished %= TimerDialog.MINUTE_MILLIS;
-			long numSeconds = millisUntilFinished / TimerDialog.SECOND_MILLIS;
-
-			StringBuilder buffer = new StringBuilder();
-			if (numDays > 0) {
-				buffer.append(numDays).append("d ");
-			}
-			if (numHours > 0) {
-				buffer.append(numHours).append("h ");
-			}
-			if (numDays == 0 && numMinutes > 0) {
-				buffer.append(numMinutes).append("m ");
-			}
-			if (numDays == 0 && numHours == 0 && numSeconds > 0) {
-				buffer.append(numSeconds).append("s ");
-			}
-			tv.setText(buffer.toString());
 		}
+		
 	}
 }

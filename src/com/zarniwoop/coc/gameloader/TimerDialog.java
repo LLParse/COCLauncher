@@ -1,24 +1,33 @@
 package com.zarniwoop.coc.gameloader;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Handler;
+import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.TextView;
 
 public class TimerDialog extends Dialog {
 
-	public static final long DAY_MILLIS = TimeUnit.DAYS.toMillis(1L);
-	public static final long HOUR_MILLIS = TimeUnit.HOURS.toMillis(1L);
-	public static final long MINUTE_MILLIS = TimeUnit.MINUTES.toMillis(1L);
-	public static final long SECOND_MILLIS = TimeUnit.SECONDS.toMillis(1L);
+	private static final long DAY_MILLIS = TimeUnit.DAYS.toMillis(1L);
+	private static final long HOUR_MILLIS = TimeUnit.HOURS.toMillis(1L);
+	private static final long MINUTE_MILLIS = TimeUnit.MINUTES.toMillis(1L);
+	private static final long SECOND_MILLIS = TimeUnit.SECONDS.toMillis(1L);
 
-	private long msDelay = 0;
+	private final TextView days;
+	private final TextView hours;
+	private final TextView minutes;
 
-	public TimerDialog(final Context context, final Credential cred, final GameArrayAdapter adapter) {
+	// in milliseconds, ms
+	private long delay;
+
+	public TimerDialog(final Context context, final Credential cred,
+			final GameArrayAdapter adapter) {
 		super(context);
 
 		setContentView(R.layout.timer);
@@ -26,7 +35,7 @@ public class TimerDialog extends Dialog {
 		setOnDismissListener(new OnDismissListener() {
 			@Override
 			public void onDismiss(DialogInterface di) {
-				long notifyTime = System.currentTimeMillis() + msDelay;
+				long notifyTime = System.currentTimeMillis() + delay;
 				cred.setNotifyTime(notifyTime);
 
 				CredentialDAO dao = new CredentialDAO(context);
@@ -34,84 +43,140 @@ public class TimerDialog extends Dialog {
 			}
 		});
 
-		final TextView days = (TextView) findViewById(R.id.days);
-		final TextView hours = (TextView) findViewById(R.id.hours);
-		final TextView minutes = (TextView) findViewById(R.id.minutes);
-		updateTimeViews(days, hours, minutes, msDelay);
+		days = (TextView) findViewById(R.id.days);
+		hours = (TextView) findViewById(R.id.hours);
+		minutes = (TextView) findViewById(R.id.minutes);
+		delay = 0;
+		updateTextViews();
 
-		final Button plusDay = (Button) findViewById(R.id.plusDay);
-		final Button plusHour = (Button) findViewById(R.id.plusHour);
-		final Button plusMinute = (Button) findViewById(R.id.plusMinute);
-		final Button minusDay = (Button) findViewById(R.id.minusDay);
-		final Button minusHour = (Button) findViewById(R.id.minusHour);
-		final Button minusMinute = (Button) findViewById(R.id.minusMinute);
-		plusDay.setOnClickListener(new DifferenceOnClickListener(days, hours,
-				minutes, DAY_MILLIS, true));
-		plusHour.setOnClickListener(new DifferenceOnClickListener(days, hours,
-				minutes, HOUR_MILLIS, true));
-		plusMinute.setOnClickListener(new DifferenceOnClickListener(days,
-				hours, minutes, MINUTE_MILLIS, true));
-		minusDay.setOnClickListener(new DifferenceOnClickListener(days, hours,
-				minutes, DAY_MILLIS, false));
-		minusHour.setOnClickListener(new DifferenceOnClickListener(days, hours,
-				minutes, HOUR_MILLIS, false));
-		minusMinute.setOnClickListener(new DifferenceOnClickListener(days,
-				hours, minutes, MINUTE_MILLIS, false));
+		AutoTickListener listener = new AutoTickListener();
+		int secondsPerUnit = 3;
+		listener.register(R.id.plusDay, DAY_MILLIS, 7 / secondsPerUnit);
+		listener.register(R.id.minusDay, -DAY_MILLIS, 7 / secondsPerUnit);
+		listener.register(R.id.plusHour, HOUR_MILLIS, 24 / secondsPerUnit);
+		listener.register(R.id.minusHour, -HOUR_MILLIS, 24 / secondsPerUnit);
+		listener.register(R.id.plusMinute, MINUTE_MILLIS, 60 / secondsPerUnit);
+		listener.register(R.id.minusMinute, -MINUTE_MILLIS, 60 / secondsPerUnit);
 	}
 
-	private void updateTimeViews(TextView days, TextView hours,
-			TextView minutes, long msDelay) {
-		long numDays = msDelay / DAY_MILLIS;
-		msDelay %= DAY_MILLIS;
+	private void updateTextViews() {
+		long numMillis = delay;
+		long numDays = numMillis / DAY_MILLIS;
+		numMillis %= DAY_MILLIS;
 		if (numDays == 1)
 			days.setText(numDays + " day,");
 		else
 			days.setText(numDays + " days,");
 
-		long numHours = msDelay / HOUR_MILLIS;
-		msDelay %= HOUR_MILLIS;
+		long numHours = numMillis / HOUR_MILLIS;
+		numMillis %= HOUR_MILLIS;
 		if (numHours == 1)
-			hours.setText(numHours + " hour,");
+			hours.setText(numHours + " hr,");
 		else
-			hours.setText(numHours + " hours,");
-		
-		long numMinutes = msDelay / MINUTE_MILLIS;
+			hours.setText(numHours + " hrs,");
+
+		long numMinutes = numMillis / MINUTE_MILLIS;
 		if (numMinutes == 1)
-			minutes.setText(numMinutes + " minute");
+			minutes.setText(numMinutes + " min");
 		else
-			minutes.setText(numMinutes + " minutes");
+			minutes.setText(numMinutes + " mins");
 	}
 
-	class DifferenceOnClickListener implements View.OnClickListener {
+	public static String toString(long delayInMillis) {
+		long numDays = delayInMillis / TimerDialog.DAY_MILLIS;
+		delayInMillis %= TimerDialog.DAY_MILLIS;
+		long numHours = delayInMillis / TimerDialog.HOUR_MILLIS;
+		delayInMillis %= TimerDialog.HOUR_MILLIS;
+		long numMinutes = delayInMillis / TimerDialog.MINUTE_MILLIS;
+		delayInMillis %= TimerDialog.MINUTE_MILLIS;
+		long numSeconds = delayInMillis / TimerDialog.SECOND_MILLIS;
 
-		private TextView days;
-		private TextView hours;
-		private TextView minutes;
-		private long difference;
-		private boolean positive;
+		StringBuilder buffer = new StringBuilder();
+		if (numDays > 0) {
+			buffer.append(numDays).append("d ");
+		}
+		if (numHours > 0) {
+			buffer.append(numHours).append("h ");
+		}
+		if (numDays == 0 && numMinutes > 0) {
+			buffer.append(numMinutes).append("m ");
+		}
+		if (numDays == 0 && numHours == 0 && numSeconds > 0) {
+			buffer.append(numSeconds).append("s ");
+		}
 
-		public DifferenceOnClickListener(TextView days, TextView hours,
-				TextView minutes, long difference, boolean positive) {
-			this.days = days;
-			this.hours = hours;
-			this.minutes = minutes;
-			this.difference = difference;
-			this.positive = positive;
+		return buffer.toString().trim();
+	}
+
+	class AutoTickListener implements View.OnTouchListener,
+			View.OnClickListener, View.OnLongClickListener {
+
+		// long press auto tick handler & flag
+		private Handler repeatHandler = new Handler();
+		private boolean autoTick;
+
+		private Map<View, Long> dxMap = new HashMap<View, Long>();
+		private Map<View, Long> delayMap = new HashMap<View, Long>();
+
+		public void register(int viewId, long dx, float ticksPerSecond) {
+			View view = findViewById(viewId);
+			view.setOnTouchListener(this);
+			view.setOnClickListener(this);
+			view.setOnLongClickListener(this);
+			dxMap.put(view, dx);
+			delayMap.put(view, (long) (1000 / ticksPerSecond));
+		}
+
+		private void tick(View view) {
+			long dx = dxMap.get(view);
+			// make sure we don't exceed the max size of a signed long
+			if (delay + dx >= 0 && delay + dx < Long.MAX_VALUE) {
+				delay += dx;
+			}
+			updateTextViews();
 		}
 
 		@Override
-		public void onClick(View v) {
-			// make sure we don't exceed the max size of a signed long
-			if (positive) {
-				if (msDelay + difference > msDelay) {
-					msDelay += difference;
-				}
-			} else {
-				if (msDelay - difference > 0) {
-					msDelay -= difference;
+		public boolean onTouch(View view, MotionEvent event) {
+			switch (event.getAction()) {
+			case MotionEvent.ACTION_UP:
+			case MotionEvent.ACTION_CANCEL:
+				autoTick = false;
+				break;
+			}
+			return false;
+		}
+
+		@Override
+		public void onClick(View view) {
+			scheduleTick(view);
+		}
+
+		@Override
+		public boolean onLongClick(View view) {
+			autoTick = true;
+			scheduleTick(view);
+			return false;
+		}
+		
+		private void scheduleTick(View view) {
+			repeatHandler.postDelayed(new Ticker(view), delayMap.get(view));
+		}
+
+		class Ticker implements Runnable {
+			private View view;
+
+			public Ticker(View view) {
+				this.view = view;
+			}
+
+			@Override
+			public void run() {
+				tick(view);
+				if (autoTick) {
+					scheduleTick(view);
 				}
 			}
-			updateTimeViews(days, hours, minutes, msDelay);
 		}
 	}
 }
