@@ -40,6 +40,7 @@ public class TimerDialog extends Dialog {
 
 				CredentialDAO dao = new CredentialDAO(context);
 				dao.updateTime(cred, notifyTime);
+				adapter.notifyDataSetChanged();
 			}
 		});
 
