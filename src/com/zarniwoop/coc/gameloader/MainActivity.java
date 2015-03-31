@@ -32,8 +32,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.stericson.RootTools.RootTools;
-import com.stericson.RootTools.exceptions.RootDeniedException;
-import com.stericson.RootTools.execution.CommandCapture;
+import com.stericson.RootShell.exceptions.RootDeniedException;
+import com.stericson.RootShell.execution.Command;;
 
 public class MainActivity extends ListActivity {
 
@@ -218,7 +218,7 @@ public class MainActivity extends ListActivity {
 		}
 	}
 
-	public static void run(CommandCapture command) {
+	public static void run(Command command) {
 		try {
 			RootTools.getShell(true).add(command);
 		} catch (IOException e) {
@@ -240,7 +240,7 @@ public class MainActivity extends ListActivity {
 
 		String[] commands = new String[] { "rm " + thatPrefsDir
 				+ "/storage.xml" };
-		CommandCapture command = new CommandCapture(0, commands) {
+		Command command = new Command(0, commands) {
 			@Override
 			public void commandCompleted(int id, int exitcode) {
 				launchGame();
@@ -282,18 +282,18 @@ public class MainActivity extends ListActivity {
 				"chgrp " + thisAppInfo.uid + " " + thisPrefsDir
 						+ "/storage.xml",
 				"chmod 660 " + thisPrefsDir + "/storage.xml" };
-		CommandCapture command = new CommandCapture(0, commands) {
+		Command command = new Command(0, commands) {
 			@Override
 			public void commandCompleted(int id, int exitcode) {
 				openStorage();
 				
 				// TODO check if credentials are already saved
 				
-				AlertDialog.Builder builder = new AlertDialog.Builder(context);
+				AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this.context);
 				builder.setTitle("Title");
 
 				// Set up the input
-				final EditText input = new EditText(context);
+				final EditText input = new EditText(MainActivity.this.context);
 				// Specify the type of input expected; this, for example, sets the input
 				// as a password, and will mask the text
 				input.setInputType(InputType.TYPE_CLASS_TEXT
@@ -351,7 +351,7 @@ public class MainActivity extends ListActivity {
 				"chgrp " + thatAppInfo.uid + " " + thatPrefsDir
 						+ "/storage.xml",
 				"chmod 660 " + thatPrefsDir + "/storage.xml" };
-		CommandCapture command = new CommandCapture(0, commands) {
+		Command command = new Command(0, commands) {
 			@Override
 			public void commandCompleted(int id, int exitcode) {
 				launchGame();
